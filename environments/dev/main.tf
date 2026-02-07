@@ -22,30 +22,45 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "skypulse"
-      ManagedBy   = "terraform"
-      Environment = "dev"
+      Project     = var.project
+      ManagedBy   = var.managed_by
+      Environment = var.environment
     }
   }
 }
 
 variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
+  type = string
+}
+
+variable "app_name" {
+  type = string
+}
+
+variable "project" {
+  type = string
+}
+
+variable "managed_by" {
+  type = string
+}
+
+variable "environment" {
+  type    = string
+  default = "dev"
 }
 
 module "skypulse" {
   source = "../../modules/skypulse"
 
   aws_region         = var.aws_region
-  environment        = "dev"
-  app_name           = "SkyPulse"
+  environment        = var.environment
+  app_name           = var.app_name
   cpu                = 256
   memory             = 512
   desired_count      = 1
   min_capacity       = 1
   max_capacity       = 1
   cpu_target_percent = 70
-  create_ecr         = true # ECR created in dev, shared across envs
+  create_ecr         = true
 }

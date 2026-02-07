@@ -57,9 +57,10 @@ SkyPulse-infra/
 │       ├── security_groups.tf    # Security Groups
 │       └── autoscaling.tf        # App Auto Scaling
 ├── environments/
+│   ├── common.tfvars             # спільні змінні (region, app_name, project, managed_by)
 │   ├── dev/
 │   │   ├── main.tf               # module call + provider
-│   │   ├── terraform.tfvars      # dev values
+│   │   ├── terraform.tfvars      # env-specific values
 │   │   └── outputs.tf
 │   ├── stg/
 │   │   ├── main.tf
@@ -122,8 +123,8 @@ SkyPulse-infra/
 ```bash
 cd environments/dev
 terraform init
-terraform plan
-terraform apply
+terraform plan -var-file=../common.tfvars
+terraform apply -var-file=../common.tfvars
 ```
 
 ### Розгортання stg / prd
@@ -131,8 +132,8 @@ terraform apply
 ```bash
 cd environments/stg
 terraform init
-terraform plan -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
-terraform apply -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
+terraform plan -var-file=../common.tfvars -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
+terraform apply -var-file=../common.tfvars -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 ```
 
 ### Збірка та push Docker образу

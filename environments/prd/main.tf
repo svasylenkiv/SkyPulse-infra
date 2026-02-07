@@ -22,20 +22,34 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "SkyPulse"
-      ManagedBy   = "Terraform"
-      Environment = "prd"
+      Project     = var.project
+      ManagedBy   = var.managed_by
+      Environment = var.environment
     }
   }
 }
 
 variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
+  type = string
 }
 
-# Get ECR URL from dev state (or pass manually)
+variable "app_name" {
+  type = string
+}
+
+variable "project" {
+  type = string
+}
+
+variable "managed_by" {
+  type = string
+}
+
+variable "environment" {
+  type    = string
+  default = "prd"
+}
+
 variable "ecr_repository_url" {
   description = "ECR repository URL (from dev environment output)"
   type        = string
@@ -45,8 +59,8 @@ module "skypulse" {
   source = "../../modules/skypulse"
 
   aws_region          = var.aws_region
-  environment         = "prd"
-  app_name            = "SkyPulse"
+  environment         = var.environment
+  app_name            = var.app_name
   cpu                 = 512
   memory              = 1024
   desired_count       = 2

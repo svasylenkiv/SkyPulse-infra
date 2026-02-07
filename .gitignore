@@ -5,6 +5,7 @@
 *.tfstate.lock.info
 .terraform.lock.hcl
 *.tfvars
+!environments/common.tfvars
 !environments/*/terraform.tfvars
 
 # IDE

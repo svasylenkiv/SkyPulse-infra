@@ -26,6 +26,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   TF_VERSION: "1.9.8"
+  COMMON_VARS: -var-file=../common.tfvars
 
 jobs:
   terraform:
@@ -79,9 +80,9 @@ jobs:
         if: inputs.action == 'plan'
         run: |
           if [ "${{ inputs.environment }}" = "dev" ]; then
-            terraform plan -input=false
+            terraform plan -input=false $COMMON_VARS
           else
-            terraform plan -input=false \
+            terraform plan -input=false $COMMON_VARS \
               -var="ecr_repository_url=${{ steps.ecr.outputs.url }}"
           fi
 
@@ -90,9 +91,9 @@ jobs:
         if: inputs.action == 'apply'
         run: |
           if [ "${{ inputs.environment }}" = "dev" ]; then
-            terraform plan -input=false -out=tfplan
+            terraform plan -input=false -out=tfplan $COMMON_VARS
           else
-            terraform plan -input=false -out=tfplan \
+            terraform plan -input=false -out=tfplan $COMMON_VARS \
               -var="ecr_repository_url=${{ steps.ecr.outputs.url }}"
           fi
 
@@ -105,9 +106,9 @@ jobs:
         if: inputs.action == 'destroy'
         run: |
           if [ "${{ inputs.environment }}" = "dev" ]; then
-            terraform destroy -input=false -auto-approve
+            terraform destroy -input=false -auto-approve $COMMON_VARS
           else
-            terraform destroy -input=false -auto-approve \
+            terraform destroy -input=false -auto-approve $COMMON_VARS \
               -var="ecr_repository_url=${{ steps.ecr.outputs.url }}"
           fi
 
