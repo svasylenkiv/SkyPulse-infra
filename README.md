@@ -41,7 +41,8 @@ Internet → ALB (port 80) → ECS Fargate Service → Container (port 8080)
 SkyPulse-infra/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml            # CI/CD workflow для Terraform
+│       ├── bootstrap.yml         # Створення S3 + DynamoDB для state
+│       └── deploy.yml            # Terraform plan / apply / destroy
 ├── modules/
 │   └── skypulse/                 # shared module (вся інфра)
 │       ├── main.tf               # ECS cluster, service, task definition, CloudWatch
@@ -71,7 +72,12 @@ SkyPulse-infra/
 
 ## CI/CD (GitHub Actions)
 
-Workflow `.github/workflows/deploy.yml` автоматизує весь процес деплою.
+Два окремі workflow:
+
+| Workflow | Файл | Призначення |
+|----------|-------|-------------|
+| **Bootstrap State Backend** | `bootstrap.yml` | Створює S3 bucket + DynamoDB для Terraform state |
+| **Terraform Deploy** | `deploy.yml` | Plan / Apply / Destroy інфраструктури |
 
 ### Налаштування секретів
 
@@ -82,27 +88,30 @@ Workflow `.github/workflows/deploy.yml` автоматизує весь проц
 | `AWS_ACCESS_KEY_ID` | AWS Access Key |
 | `AWS_SECRET_ACCESS_KEY` | AWS Secret Key |
 
-### Як запустити
-
-1. Перейди в **Actions** → **Terraform Deploy** → **Run workflow**
-2. Обери **environment** (`dev` / `stg` / `prd`) та **action** (`plan` / `apply` / `destroy`)
-3. Натисни **Run workflow**
-
 ### Порядок першого деплою
 
 ```
-1. dev  (apply)  — створює ECR + всю інфраструктуру
-2. stg  (apply)  — використовує ECR з dev
-3. prd  (apply)  — використовує ECR з dev
+1. Bootstrap State Backend  — один раз, створює S3 + DynamoDB
+2. Terraform Deploy: dev  (apply)  — створює ECR + всю інфраструктуру
+3. Terraform Deploy: stg  (apply)  — використовує ECR з dev
+4. Terraform Deploy: prd  (apply)  — використовує ECR з dev
 ```
 
-### Що робить workflow
+### Bootstrap State Backend
 
-- **Bootstrap** — автоматично створює S3 bucket (`skypulse-tf-state`) та DynamoDB таблицю (`skypulse-tf-lock`) для зберігання Terraform state (ідемпотентно)
-- **Init** — ініціалізує Terraform з remote backend (S3)
-- **Plan** — показує заплановані зміни
-- **Apply** — план + автоматичне застосування (`-auto-approve`)
-- **Destroy** — видалення всіх ресурсів середовища
+Запускається **один раз** перед першим деплоєм. Створює:
+- S3 bucket `skypulse-tf-state` (versioning, encryption, block public access)
+- DynamoDB таблиця `skypulse-tf-lock` (state locking)
+
+Запуск: **Actions** → **Bootstrap State Backend** → **Run workflow**
+
+### Terraform Deploy
+
+Запуск: **Actions** → **Terraform Deploy** → **Run workflow**
+
+Інпути:
+- **environment**: `dev` / `stg` / `prd`
+- **action**: `plan` / `apply` / `destroy`
 
 ## Локальне використання
 
