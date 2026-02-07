@@ -155,8 +155,8 @@ docker push $ECR_URL:dev-latest
 
 ```bash
 aws ecs update-service \
-  --cluster SkyPulse-dev-ecs \
-  --service SkyPulse-dev-svc \
+  --cluster skypulse-dev-ecs \
+  --service skypulse-dev-svc \
   --force-new-deployment
 ```
 

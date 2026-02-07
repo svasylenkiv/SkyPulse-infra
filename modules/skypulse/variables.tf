@@ -11,7 +11,7 @@ variable "environment" {
 variable "app_name" {
   description = "Application name"
   type        = string
-  default     = "SkyPulse"
+  default     = "skypulse"
 }
 
 variable "app_port" {

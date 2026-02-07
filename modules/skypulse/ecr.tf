@@ -1,8 +1,7 @@
 # --- ECR Repository (created only when create_ecr = true) ---
-# ECR repo names must be lowercase
 resource "aws_ecr_repository" "app" {
   count                = var.create_ecr ? 1 : 0
-  name                 = lower(var.app_name)
+  name                 = var.app_name
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
