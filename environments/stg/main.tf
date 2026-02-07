@@ -26,7 +26,7 @@ provider "aws" {
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "eu-central-1"
+  default     = "us-east-1"
 }
 
 # Get ECR URL from dev state (or pass manually)

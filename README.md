@@ -124,7 +124,7 @@ cd environments/dev
 terraform init \
   -backend-config="bucket=skypulse-tf-state" \
   -backend-config="key=dev/terraform.tfstate" \
-  -backend-config="region=eu-central-1" \
+  -backend-config="region=us-east-1" \
   -backend-config="dynamodb_table=skypulse-tf-lock" \
   -backend-config="encrypt=true"
 ```
@@ -143,7 +143,7 @@ cd environments/stg
 terraform init \
   -backend-config="bucket=skypulse-tf-state" \
   -backend-config="key=stg/terraform.tfstate" \
-  -backend-config="region=eu-central-1" \
+  -backend-config="region=us-east-1" \
   -backend-config="dynamodb_table=skypulse-tf-lock" \
   -backend-config="encrypt=true"
 
@@ -155,7 +155,7 @@ terraform apply -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 
 ```bash
 ECR_URL=$(terraform -chdir=environments/dev output -raw ecr_repository_url)
-AWS_REGION="eu-central-1"
+AWS_REGION="us-east-1"
 
 # Логін в ECR
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
