@@ -39,21 +39,24 @@ Internet → ALB (port 80) → ECS Fargate Service → Container (port 8080)
 
 ```
 SkyPulse-infra/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # CI/CD workflow для Terraform
 ├── modules/
-│   └── skypulse/              # shared module (вся інфра)
-│       ├── main.tf            # ECS cluster, service, task definition, CloudWatch
-│       ├── variables.tf       # input variables
-│       ├── outputs.tf         # outputs
-│       ├── vpc.tf             # VPC, subnets, IGW, routes
-│       ├── alb.tf             # ALB, target group, listener
-│       ├── ecr.tf             # ECR repo (conditional)
-│       ├── iam.tf             # IAM roles
-│       ├── security_groups.tf # Security Groups
-│       └── autoscaling.tf     # App Auto Scaling
+│   └── skypulse/                 # shared module (вся інфра)
+│       ├── main.tf               # ECS cluster, service, task definition, CloudWatch
+│       ├── variables.tf          # input variables
+│       ├── outputs.tf            # outputs
+│       ├── vpc.tf                # VPC, subnets, IGW, routes
+│       ├── alb.tf                # ALB, target group, listener
+│       ├── ecr.tf                # ECR repo (conditional)
+│       ├── iam.tf                # IAM roles
+│       ├── security_groups.tf    # Security Groups
+│       └── autoscaling.tf        # App Auto Scaling
 ├── environments/
 │   ├── dev/
-│   │   ├── main.tf            # module call + provider
-│   │   ├── terraform.tfvars   # dev values
+│   │   ├── main.tf               # module call + provider
+│   │   ├── terraform.tfvars      # dev values
 │   │   └── outputs.tf
 │   ├── stg/
 │   │   ├── main.tf
@@ -66,89 +69,99 @@ SkyPulse-infra/
 └── README.md
 ```
 
-## Вимоги
+## CI/CD (GitHub Actions)
 
-- [Terraform](https://www.terraform.io/downloads) >= 1.5
-- [AWS CLI](https://aws.amazon.com/cli/) з налаштованими credentials
-- Docker (для збірки та пушу образу)
+Workflow `.github/workflows/deploy.yml` автоматизує весь процес деплою.
 
-## Використання
+### Налаштування секретів
 
-### 1. Розгортання dev (створює ECR)
+Додай ці секрети в GitHub репозиторій (`Settings → Secrets and variables → Actions`):
+
+| Секрет | Опис |
+|--------|------|
+| `AWS_ACCESS_KEY_ID` | AWS Access Key |
+| `AWS_SECRET_ACCESS_KEY` | AWS Secret Key |
+
+### Як запустити
+
+1. Перейди в **Actions** → **Terraform Deploy** → **Run workflow**
+2. Обери **environment** (`dev` / `stg` / `prd`) та **action** (`plan` / `apply` / `destroy`)
+3. Натисни **Run workflow**
+
+### Порядок першого деплою
+
+```
+1. dev  (apply)  — створює ECR + всю інфраструктуру
+2. stg  (apply)  — використовує ECR з dev
+3. prd  (apply)  — використовує ECR з dev
+```
+
+### Що робить workflow
+
+- **Bootstrap** — автоматично створює S3 bucket (`skypulse-tf-state`) та DynamoDB таблицю (`skypulse-tf-lock`) для зберігання Terraform state (ідемпотентно)
+- **Init** — ініціалізує Terraform з remote backend (S3)
+- **Plan** — показує заплановані зміни
+- **Apply** — план + автоматичне застосування (`-auto-approve`)
+- **Destroy** — видалення всіх ресурсів середовища
+
+## Локальне використання
+
+### Ініціалізація з remote backend
 
 ```bash
 cd environments/dev
-terraform init
+terraform init \
+  -backend-config="bucket=skypulse-tf-state" \
+  -backend-config="key=dev/terraform.tfstate" \
+  -backend-config="region=eu-central-1" \
+  -backend-config="dynamodb_table=skypulse-tf-lock" \
+  -backend-config="encrypt=true"
+```
+
+### Розгортання dev
+
+```bash
 terraform plan
 terraform apply
 ```
 
-Збережи ECR URL з outputs:
-
-```bash
-terraform output ecr_repository_url
-```
-
-### 2. Розгортання stg / prd
-
-Для stg та prd потрібно передати ECR URL з dev:
+### Розгортання stg / prd
 
 ```bash
 cd environments/stg
-terraform init
+terraform init \
+  -backend-config="bucket=skypulse-tf-state" \
+  -backend-config="key=stg/terraform.tfstate" \
+  -backend-config="region=eu-central-1" \
+  -backend-config="dynamodb_table=skypulse-tf-lock" \
+  -backend-config="encrypt=true"
+
 terraform plan -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 terraform apply -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 ```
 
-Аналогічно для prd:
+### Збірка та push Docker образу
 
 ```bash
-cd environments/prd
-terraform init
-terraform plan -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
-terraform apply -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
-```
-
-### 3. Збірка та push Docker образу
-
-```bash
-# Отримай ECR URL
 ECR_URL=$(terraform -chdir=environments/dev output -raw ecr_repository_url)
 AWS_REGION="eu-central-1"
 
 # Логін в ECR
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
 
-# Збірка та push (з папки SkyPulse)
+# Збірка та push
 cd ../SkyPulse
 docker build -t $ECR_URL:dev-latest .
 docker push $ECR_URL:dev-latest
-
-# Для інших середовищ:
-# docker tag $ECR_URL:dev-latest $ECR_URL:stg-latest
-# docker push $ECR_URL:stg-latest
 ```
 
-### 4. Оновлення сервісу
+### Оновлення сервісу
 
 ```bash
-# Dev
 aws ecs update-service \
   --cluster SkyPulse-dev-ecs \
   --service SkyPulse-dev-svc \
   --force-new-deployment
-
-# Stg
-aws ecs update-service \
-  --cluster SkyPulse-stg-ecs \
-  --service SkyPulse-stg-svc \
-  --force-new-deployment
-```
-
-### 5. Відкриття додатку
-
-```bash
-terraform -chdir=environments/dev output alb_dns_name
 ```
 
 ## Видалення
@@ -156,6 +169,9 @@ terraform -chdir=environments/dev output alb_dns_name
 Видаляй у зворотному порядку:
 
 ```bash
+# Через GitHub Actions:  Destroy prd → stg → dev
+
+# Або локально:
 terraform -chdir=environments/prd destroy
 terraform -chdir=environments/stg destroy
 terraform -chdir=environments/dev destroy   # останнім, бо має ECR

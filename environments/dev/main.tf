@@ -8,12 +8,7 @@ terraform {
     }
   }
 
-  # Remote backend (uncomment and configure for your setup)
-  # backend "s3" {
-  #   bucket = "skypulse-terraform-state"
-  #   key    = "dev/terraform.tfstate"
-  #   region = "eu-central-1"
-  # }
+  backend "s3" {}
 }
 
 provider "aws" {
