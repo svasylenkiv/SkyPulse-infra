@@ -29,7 +29,7 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
-  tags = { Name = "${local.prefix}-public-${count.index + 1}" }
+  tags = { Name = "${local.prefix}-pub-${count.index + 1}" }
 }
 
 # --- Route Table ---
@@ -41,7 +41,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = { Name = "${local.prefix}-public-rt" }
+  tags = { Name = "${local.prefix}-rt" }
 }
 
 resource "aws_route_table_association" "public" {

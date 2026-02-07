@@ -10,7 +10,7 @@ resource "aws_appautoscaling_target" "ecs" {
 
 # --- Scale on CPU utilization ---
 resource "aws_appautoscaling_policy" "cpu" {
-  name               = "${local.prefix}-cpu-autoscaling"
+  name               = "${local.prefix}-cpu-as"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs.scalable_dimension

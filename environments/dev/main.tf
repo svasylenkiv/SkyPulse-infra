@@ -39,7 +39,7 @@ module "skypulse" {
 
   aws_region         = var.aws_region
   environment        = "dev"
-  app_name           = "skypulse"
+  app_name           = "SkyPulse"
   cpu                = 256
   memory             = 512
   desired_count      = 1

@@ -8,19 +8,19 @@ resource "aws_cloudwatch_log_group" "app" {
 
 # --- ECS Cluster ---
 resource "aws_ecs_cluster" "main" {
-  name = "${local.prefix}-cluster"
+  name = "${local.prefix}-ecs"
 
   setting {
     name  = "containerInsights"
     value = "disabled"
   }
 
-  tags = { Name = "${local.prefix}-cluster" }
+  tags = { Name = "${local.prefix}-ecs" }
 }
 
 # --- Task Definition ---
 resource "aws_ecs_task_definition" "app" {
-  family                   = local.prefix
+  family                   = "${local.prefix}-task"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.cpu
@@ -58,7 +58,7 @@ resource "aws_ecs_task_definition" "app" {
 
 # --- ECS Service ---
 resource "aws_ecs_service" "app" {
-  name            = "${local.prefix}-service"
+  name            = "${local.prefix}-svc"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
@@ -82,5 +82,5 @@ resource "aws_ecs_service" "app" {
     ignore_changes = [desired_count]
   }
 
-  tags = { Name = "${local.prefix}-service" }
+  tags = { Name = "${local.prefix}-svc" }
 }

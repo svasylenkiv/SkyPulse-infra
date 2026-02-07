@@ -1,6 +1,6 @@
 # --- ECS Task Execution Role (pulling images, writing logs) ---
 resource "aws_iam_role" "ecs_execution" {
-  name = "${local.prefix}-ecs-execution-role"
+  name = "${local.prefix}-exec-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -19,7 +19,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 
 # --- ECS Task Role (permissions for the app itself) ---
 resource "aws_iam_role" "ecs_task" {
-  name = "${local.prefix}-ecs-task-role"
+  name = "${local.prefix}-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

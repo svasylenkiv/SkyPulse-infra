@@ -134,14 +134,14 @@ docker push $ECR_URL:dev-latest
 ```bash
 # Dev
 aws ecs update-service \
-  --cluster skypulse-dev-cluster \
-  --service skypulse-dev-service \
+  --cluster SkyPulse-dev-ecs \
+  --service SkyPulse-dev-svc \
   --force-new-deployment
 
 # Stg
 aws ecs update-service \
-  --cluster skypulse-stg-cluster \
-  --service skypulse-stg-service \
+  --cluster SkyPulse-stg-ecs \
+  --service SkyPulse-stg-svc \
   --force-new-deployment
 ```
 
