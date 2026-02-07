@@ -42,7 +42,7 @@ SkyPulse-infra/
 ├── .github/
 │   └── workflows/
 │       ├── bootstrap.yml         # Створення S3 + DynamoDB для state
-│       └── deploy.yml            # Terraform plan / apply / destroy
+│       └── terraform-deploy.yml   # Terraform plan / apply / destroy
 ├── modules/
 │   └── skypulse/                 # shared module (вся інфра)
 │       ├── main.tf               # ECS cluster, service, task definition, CloudWatch
@@ -77,7 +77,7 @@ SkyPulse-infra/
 | Workflow | Файл | Призначення |
 |----------|-------|-------------|
 | **Bootstrap State Backend** | `bootstrap.yml` | Створює S3 bucket + DynamoDB для Terraform state |
-| **Terraform Deploy** | `deploy.yml` | Plan / Apply / Destroy інфраструктури |
+| **Terraform Deploy** | `terraform-deploy.yml` | Plan / Apply / Destroy інфраструктури |
 
 ### Налаштування секретів
 
