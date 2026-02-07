@@ -41,8 +41,10 @@ Internet → ALB (port 80) → ECS Fargate Service → Container (port 8080)
 SkyPulse-infra/
 ├── .github/
 │   └── workflows/
-│       ├── bootstrap.yml         # Створення S3 + DynamoDB для state
-│       └── terraform-deploy.yml   # Terraform plan / apply / destroy
+│       ├── bootstrap.yml           # Створення S3 + DynamoDB для state
+│       └── terraform-deploy.yml    # Terraform plan / apply / destroy
+├── bootstrap/
+│   └── main.tf                     # Terraform: S3 bucket + DynamoDB (local state)
 ├── modules/
 │   └── skypulse/                 # shared module (вся інфра)
 │       ├── main.tf               # ECS cluster, service, task definition, CloudWatch
