@@ -1,0 +1,7 @@
+aws_region    = "eu-central-1"
+environment   = "prod"
+app_name      = "skypulse"
+app_port      = 8080
+cpu           = 256
+memory        = 512
+desired_count = 1
