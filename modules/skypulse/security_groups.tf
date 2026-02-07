@@ -1,6 +1,6 @@
 # --- ALB Security Group ---
 resource "aws_security_group" "alb" {
-  name        = "${var.app_name}-alb-sg"
+  name        = "${local.prefix}-alb-sg"
   description = "Allow HTTP traffic to ALB"
   vpc_id      = aws_vpc.main.id
 
@@ -19,12 +19,12 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Name = "${var.app_name}-alb-sg" }
+  tags = { Name = "${local.prefix}-alb-sg" }
 }
 
 # --- ECS Tasks Security Group ---
 resource "aws_security_group" "ecs" {
-  name        = "${var.app_name}-ecs-sg"
+  name        = "${local.prefix}-ecs-sg"
   description = "Allow traffic from ALB to ECS tasks"
   vpc_id      = aws_vpc.main.id
 
@@ -43,5 +43,5 @@ resource "aws_security_group" "ecs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Name = "${var.app_name}-ecs-sg" }
+  tags = { Name = "${local.prefix}-ecs-sg" }
 }

@@ -1,26 +1,26 @@
 # --- CloudWatch Log Group ---
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/${var.app_name}"
+  name              = "/ecs/${local.prefix}"
   retention_in_days = 7
 
-  tags = { Name = "${var.app_name}-logs" }
+  tags = { Name = "${local.prefix}-logs" }
 }
 
 # --- ECS Cluster ---
 resource "aws_ecs_cluster" "main" {
-  name = "${var.app_name}-cluster"
+  name = "${local.prefix}-cluster"
 
   setting {
     name  = "containerInsights"
     value = "disabled"
   }
 
-  tags = { Name = "${var.app_name}-cluster" }
+  tags = { Name = "${local.prefix}-cluster" }
 }
 
 # --- Task Definition ---
 resource "aws_ecs_task_definition" "app" {
-  family                   = var.app_name
+  family                   = local.prefix
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.cpu
@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([{
     name      = var.app_name
-    image     = "${aws_ecr_repository.app.repository_url}:latest"
+    image     = "${local.ecr_url}:${var.environment}-latest"
     essential = true
 
     portMappings = [{
@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "app" {
     }]
 
     environment = [
-      { name = "ASPNETCORE_ENVIRONMENT", value = "Production" },
+      { name = "ASPNETCORE_ENVIRONMENT", value = var.environment },
       { name = "ASPNETCORE_URLS", value = "http://+:${var.app_port}" }
     ]
 
@@ -53,12 +53,12 @@ resource "aws_ecs_task_definition" "app" {
     }
   }])
 
-  tags = { Name = "${var.app_name}-task" }
+  tags = { Name = "${local.prefix}-task" }
 }
 
 # --- ECS Service ---
 resource "aws_ecs_service" "app" {
-  name            = "${var.app_name}-service"
+  name            = "${local.prefix}-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
@@ -78,5 +78,9 @@ resource "aws_ecs_service" "app" {
 
   depends_on = [aws_lb_listener.http]
 
-  tags = { Name = "${var.app_name}-service" }
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  tags = { Name = "${local.prefix}-service" }
 }

@@ -1,16 +1,20 @@
+locals {
+  prefix = "${var.app_name}-${var.environment}"
+}
+
 # --- VPC ---
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = { Name = "${var.app_name}-vpc" }
+  tags = { Name = "${local.prefix}-vpc" }
 }
 
 # --- Internet Gateway ---
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "${var.app_name}-igw" }
+  tags   = { Name = "${local.prefix}-igw" }
 }
 
 # --- Public Subnets (2 AZs for ALB) ---
@@ -25,7 +29,7 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
-  tags = { Name = "${var.app_name}-public-${count.index + 1}" }
+  tags = { Name = "${local.prefix}-public-${count.index + 1}" }
 }
 
 # --- Route Table ---
@@ -37,7 +41,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = { Name = "${var.app_name}-public-rt" }
+  tags = { Name = "${local.prefix}-public-rt" }
 }
 
 resource "aws_route_table_association" "public" {
