@@ -8,7 +8,13 @@ terraform {
     }
   }
 
-  backend "s3" {}
+  backend "s3" {
+    bucket         = "skypulse-tf-state"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "skypulse-tf-lock"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
@@ -16,8 +22,8 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "SkyPulse"
-      ManagedBy   = "Terraform"
+      Project     = "skypulse"
+      ManagedBy   = "terraform"
       Environment = "dev"
     }
   }

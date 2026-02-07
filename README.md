@@ -117,21 +117,11 @@ SkyPulse-infra/
 
 ## Локальне використання
 
-### Ініціалізація з remote backend
-
-```bash
-cd environments/dev
-terraform init \
-  -backend-config="bucket=skypulse-tf-state" \
-  -backend-config="key=dev/terraform.tfstate" \
-  -backend-config="region=us-east-1" \
-  -backend-config="dynamodb_table=skypulse-tf-lock" \
-  -backend-config="encrypt=true"
-```
-
 ### Розгортання dev
 
 ```bash
+cd environments/dev
+terraform init
 terraform plan
 terraform apply
 ```
@@ -140,13 +130,7 @@ terraform apply
 
 ```bash
 cd environments/stg
-terraform init \
-  -backend-config="bucket=skypulse-tf-state" \
-  -backend-config="key=stg/terraform.tfstate" \
-  -backend-config="region=us-east-1" \
-  -backend-config="dynamodb_table=skypulse-tf-lock" \
-  -backend-config="encrypt=true"
-
+terraform init
 terraform plan -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 terraform apply -var="ecr_repository_url=<ECR_URL_FROM_DEV>"
 ```
