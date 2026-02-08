@@ -8,12 +8,12 @@ terraform {
     }
   }
 
+  # Partial backend config — bucket and dynamodb_table are passed via
+  # -backend-config in the workflow (derived from app_name in common.tfvars)
   backend "s3" {
-    bucket         = "skypulse-tf-state"
-    key            = "dev/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "skypulse-tf-lock"
-    encrypt        = true
+    key     = "dev/terraform.tfstate"
+    region  = "us-east-1"
+    encrypt = true
   }
 }
 

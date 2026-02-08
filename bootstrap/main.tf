@@ -22,28 +22,27 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "state_bucket_name" {
-  description = "S3 bucket name for Terraform state"
+variable "app_name" {
+  description = "Application name (used to derive bucket/table names)"
   type        = string
-  default     = "skypulse-tf-state"
+  default     = "skypulse"
 }
 
-variable "lock_table_name" {
-  description = "DynamoDB table name for state locking"
-  type        = string
-  default     = "skypulse-tf-lock"
+locals {
+  state_bucket_name = "${var.app_name}-tf-state"
+  lock_table_name   = "${var.app_name}-tf-lock"
 }
 
 # --- S3 Bucket for Terraform State ---
 resource "aws_s3_bucket" "state" {
-  bucket = var.state_bucket_name
+  bucket = local.state_bucket_name
 
   lifecycle {
     prevent_destroy = true
   }
 
   tags = {
-    Name      = var.state_bucket_name
+    Name      = local.state_bucket_name
     Project   = "SkyPulse"
     ManagedBy = "Terraform"
   }
@@ -78,7 +77,7 @@ resource "aws_s3_bucket_public_access_block" "state" {
 
 # --- DynamoDB Table for State Locking ---
 resource "aws_dynamodb_table" "lock" {
-  name         = var.lock_table_name
+  name         = local.lock_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -92,7 +91,7 @@ resource "aws_dynamodb_table" "lock" {
   }
 
   tags = {
-    Name      = var.lock_table_name
+    Name      = local.lock_table_name
     Project   = "SkyPulse"
     ManagedBy = "Terraform"
   }

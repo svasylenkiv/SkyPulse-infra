@@ -17,7 +17,6 @@ permissions:
 env:
   AWS_REGION: us-east-1
   TF_VERSION: "1.9.8"
-  TF_STATE_BUCKET: skypulse-tf-state
 
 jobs:
   bootstrap:
@@ -43,11 +42,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Read app_name from common.tfvars
+        id: vars
+        working-directory: environments
+        run: |
+          APP_NAME=$(grep 'app_name' common.tfvars | sed 's/.*= *"\(.*\)"/\1/')
+          echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "bucket=${APP_NAME}-tf-state" >> "$GITHUB_OUTPUT"
+          echo "lock_table=${APP_NAME}-tf-lock" >> "$GITHUB_OUTPUT"
+          echo "App name: $APP_NAME"
+
       # Skip if already bootstrapped (local state is ephemeral in CI)
       - name: Check if already bootstrapped
         id: check
         run: |
-          if aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
+          if aws s3api head-bucket --bucket "${{ steps.vars.outputs.bucket }}" 2>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "State backend already exists — nothing to do"
           else
@@ -61,11 +70,11 @@ jobs:
 
       - name: Terraform Plan
         if: steps.check.outputs.exists == 'false'
-        run: terraform plan -input=false
+        run: terraform plan -input=false -var="app_name=${{ steps.vars.outputs.app_name }}"
 
       - name: Terraform Apply
         if: steps.check.outputs.exists == 'false' && inputs.action == 'apply'
-        run: terraform apply -input=false -auto-approve
+        run: terraform apply -input=false -auto-approve -var="app_name=${{ steps.vars.outputs.app_name }}"
 
       - name: Show Outputs
         if: steps.check.outputs.exists == 'false' && inputs.action == 'apply'
@@ -76,9 +85,9 @@ jobs:
         working-directory: .
         run: |
           echo "=== S3 Bucket ==="
-          aws s3api head-bucket --bucket "$TF_STATE_BUCKET" && echo "$TF_STATE_BUCKET ✓"
+          aws s3api head-bucket --bucket "${{ steps.vars.outputs.bucket }}" && echo "${{ steps.vars.outputs.bucket }} ✓"
           echo ""
           echo "=== DynamoDB Table ==="
-          aws dynamodb describe-table --table-name skypulse-tf-lock \
+          aws dynamodb describe-table --table-name "${{ steps.vars.outputs.lock_table }}" \
             --query 'Table.TableStatus' --output text
-          echo "skypulse-tf-lock ✓"
+          echo "${{ steps.vars.outputs.lock_table }} ✓"

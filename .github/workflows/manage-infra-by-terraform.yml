@@ -54,8 +54,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Read app_name from common.tfvars
+        id: vars
+        working-directory: environments
+        run: |
+          APP_NAME=$(grep 'app_name' common.tfvars | sed 's/.*= *"\(.*\)"/\1/')
+          echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "App name: $APP_NAME"
+
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ steps.vars.outputs.app_name }}-tf-state" \
+            -backend-config="dynamodb_table=${{ steps.vars.outputs.app_name }}-tf-lock"
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
