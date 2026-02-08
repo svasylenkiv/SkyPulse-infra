@@ -83,4 +83,8 @@ module "skypulse" {
   ecr_repository_url  = var.ecr_repository_url
   certificate_arn     = var.certificate_arn
   alert_email         = var.alert_email
+
+  # Canary deployment (set canary_enabled = true and canary_weight > 0 to activate)
+  canary_enabled = false
+  canary_weight  = 0
 }
