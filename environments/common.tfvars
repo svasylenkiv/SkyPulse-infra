@@ -1,4 +1,4 @@
 aws_region = "us-east-1"
-app_name   = "skypulse"
-project    = "skypulse"
+app_name   = "skypulsenew"
+project    = "skypulsenew"
 managed_by = "terraform"
