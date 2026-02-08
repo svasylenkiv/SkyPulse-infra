@@ -50,6 +50,12 @@ variable "environment" {
   default = "dev"
 }
 
+variable "alert_email" {
+  description = "Email for CloudWatch alarm notifications"
+  type        = string
+  default     = ""
+}
+
 module "skypulse" {
   source = "../../modules/skypulse"
 
@@ -63,6 +69,7 @@ module "skypulse" {
   max_capacity       = 4
   cpu_target_percent = 70
   create_ecr         = true
+  alert_email        = var.alert_email
 
   # Canary deployment (set canary_enabled = true and canary_weight > 0 to activate)
   canary_enabled = false
