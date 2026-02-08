@@ -72,6 +72,6 @@ module "skypulse" {
   alert_email        = var.alert_email
 
   # Canary deployment (set canary_enabled = true and canary_weight > 0 to activate)
-  canary_enabled = false
-  canary_weight  = 0
+  canary_enabled = true
+  canary_weight  = 10
 }
