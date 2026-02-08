@@ -1,6 +1,6 @@
 output "alb_dns_name" {
   description = "ALB DNS name (app URL)"
-  value       = "http://${aws_lb.main.dns_name}"
+  value       = var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
 }
 
 output "ecr_repository_url" {
@@ -16,4 +16,9 @@ output "ecs_cluster_name" {
 output "ecs_service_name" {
   description = "ECS service name"
   value       = aws_ecs_service.app.name
+}
+
+output "sns_alerts_topic_arn" {
+  description = "SNS topic ARN for CloudWatch alarm notifications"
+  value       = aws_sns_topic.alerts.arn
 }

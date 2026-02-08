@@ -52,6 +52,18 @@ variable "cpu_target_percent" {
   default     = 70
 }
 
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS. When set, HTTPS listener is created and HTTP redirects to HTTPS."
+  type        = string
+  default     = ""
+}
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm notifications (leave empty to skip email subscription)"
+  type        = string
+  default     = ""
+}
+
 variable "create_ecr" {
   description = "Whether to create ECR repository (set true only in one environment)"
   type        = bool

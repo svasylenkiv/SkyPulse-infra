@@ -17,3 +17,8 @@ output "ecs_service_name" {
   description = "ECS service name"
   value       = module.skypulse.ecs_service_name
 }
+
+output "sns_alerts_topic_arn" {
+  description = "SNS topic ARN for CloudWatch alarm notifications"
+  value       = module.skypulse.sns_alerts_topic_arn
+}

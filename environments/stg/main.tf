@@ -55,6 +55,18 @@ variable "ecr_repository_url" {
   type        = string
 }
 
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "alert_email" {
+  description = "Email for CloudWatch alarm notifications"
+  type        = string
+  default     = ""
+}
+
 module "skypulse" {
   source = "../../modules/skypulse"
 
@@ -65,8 +77,10 @@ module "skypulse" {
   memory              = 512
   desired_count       = 1
   min_capacity        = 1
-  max_capacity        = 2
+  max_capacity        = 1
   cpu_target_percent  = 70
   create_ecr          = false
   ecr_repository_url  = var.ecr_repository_url
+  certificate_arn     = var.certificate_arn
+  alert_email         = var.alert_email
 }
