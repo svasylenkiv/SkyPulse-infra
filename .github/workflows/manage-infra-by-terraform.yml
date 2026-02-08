@@ -81,7 +81,7 @@ jobs:
         id: ecr
         run: |
           ECR_URL=$(aws ecr describe-repositories \
-            --repository-names skypulse \
+            --repository-names "${{ steps.vars.outputs.app_name }}" \
             --query 'repositories[0].repositoryUri' \
             --output text)
           echo "url=$ECR_URL" >> "$GITHUB_OUTPUT"
