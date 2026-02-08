@@ -1,4 +1,5 @@
-name: Terraform Deploy
+name: Terraform Manage Infra
+run-name: "Terraform ${{ inputs.action }} — ${{ inputs.environment }}"
 
 on:
   workflow_dispatch:
