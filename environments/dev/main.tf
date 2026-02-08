@@ -63,4 +63,8 @@ module "skypulse" {
   max_capacity       = 4
   cpu_target_percent = 70
   create_ecr         = true
+
+  # Canary deployment (set canary_enabled = true and canary_weight > 0 to activate)
+  canary_enabled = false
+  canary_weight  = 0
 }

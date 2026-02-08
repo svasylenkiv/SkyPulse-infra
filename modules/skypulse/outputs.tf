@@ -22,3 +22,13 @@ output "sns_alerts_topic_arn" {
   description = "SNS topic ARN for CloudWatch alarm notifications"
   value       = aws_sns_topic.alerts.arn
 }
+
+output "canary_service_name" {
+  description = "Canary ECS service name (empty when canary is disabled)"
+  value       = var.canary_enabled ? aws_ecs_service.canary[0].name : ""
+}
+
+output "canary_target_group_arn" {
+  description = "Canary target group ARN (empty when canary is disabled)"
+  value       = var.canary_enabled ? aws_lb_target_group.canary[0].arn : ""
+}

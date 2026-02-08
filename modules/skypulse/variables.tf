@@ -75,3 +75,28 @@ variable "ecr_repository_url" {
   type        = string
   default     = ""
 }
+
+# --- Canary Deployment ---
+
+variable "canary_enabled" {
+  description = "Enable canary deployment (creates canary target group and ECS service)"
+  type        = bool
+  default     = false
+}
+
+variable "canary_weight" {
+  description = "Traffic weight for canary target group (0-100). Stable gets (100 - canary_weight)."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.canary_weight >= 0 && var.canary_weight <= 100
+    error_message = "canary_weight must be between 0 and 100."
+  }
+}
+
+variable "canary_image_tag" {
+  description = "Docker image tag for canary task definition. Defaults to <environment>-canary."
+  type        = string
+  default     = ""
+}

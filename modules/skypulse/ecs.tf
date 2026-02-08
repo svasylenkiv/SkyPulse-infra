@@ -92,3 +92,83 @@ resource "aws_ecs_service" "app" {
 
   tags = { Name = "${local.prefix}-svc" }
 }
+
+# --- Canary Task Definition ---
+resource "aws_ecs_task_definition" "canary" {
+  count = var.canary_enabled ? 1 : 0
+
+  family                   = "${local.prefix}-canary-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = var.cpu
+  memory                   = var.memory
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([{
+    name      = var.app_name
+    image     = "${local.ecr_url}:${var.canary_image_tag != "" ? var.canary_image_tag : "${var.environment}-canary"}"
+    essential = true
+
+    portMappings = [{
+      containerPort = var.app_port
+      protocol      = "tcp"
+    }]
+
+    environment = [
+      { name = "ASPNETCORE_ENVIRONMENT", value = var.environment },
+      { name = "ASPNETCORE_URLS", value = "http://+:${var.app_port}" },
+      { name = "CANARY", value = "true" }
+    ]
+
+    healthCheck = {
+      command     = ["CMD-SHELL", "curl -f http://localhost:${var.app_port}/health || exit 1"]
+      interval    = 30
+      timeout     = 5
+      retries     = 3
+      startPeriod = 15
+    }
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.app.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "ecs-canary"
+      }
+    }
+  }])
+
+  tags = { Name = "${local.prefix}-canary-task" }
+}
+
+# --- Canary ECS Service ---
+resource "aws_ecs_service" "canary" {
+  count = var.canary_enabled ? 1 : 0
+
+  name            = "${local.prefix}-canary-svc"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.canary[0].arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.canary[0].arn
+    container_name   = var.app_name
+    container_port   = var.app_port
+  }
+
+  depends_on = [aws_lb_listener.http, aws_lb_listener.https]
+
+  lifecycle {
+    ignore_changes = [desired_count, task_definition]
+  }
+
+  tags = { Name = "${local.prefix}-canary-svc" }
+}
