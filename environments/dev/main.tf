@@ -59,7 +59,7 @@ module "skypulse" {
   cpu                = 256
   memory             = 512
   desired_count      = 2
-  min_capacity       = 1
+  min_capacity       = 2
   max_capacity       = 4
   cpu_target_percent = 70
   create_ecr         = true
