@@ -1,5 +1,5 @@
 aws_region = "us-east-1"
-app_name   = "skypulsenew"
-project    = "skypulsenew"
+app_name   = "skypulse"
+project    = "skypulse"
 managed_by  = "terraform"
 alert_email = "freedom_88@ukr.net"  
